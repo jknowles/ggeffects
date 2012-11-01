@@ -1,0 +1,11 @@
+my_summary<-function(x,...){
+  s<-list(mean(x),
+          sd(x),
+          min(x),
+          as.numeric(quantile(x,.25)),
+          as.numeric(quantile(x,.5)),
+          as.numeric(quantile(x,.75)),
+          max(x))
+  names(s)<-c("mean","sd","Min","1Q","Median","3Q","Max")
+  unlist(s)
+}

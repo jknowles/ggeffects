@@ -130,6 +130,14 @@ qplot(est,y=..scaled..,data=df2,geom='density',log="est")+facet_wrap(~var)+theme
 
 df<-reg_effects(mymod)
 
+pdf <- ifelse(mymod$family[2]=="probit",
+              mean(dnorm(predict(mymod, type = "link"))),
+              mean(dlogis(predict(mymod, type = "link"))))
+
+df$mid<-(df$lower+df$upper)/2
+
+df$mfx <- pdf*df$mid
+
 df2<-mymod$model[sample(row.names(mymod$model),100),]
 df2$case<-seq(1:nrow(df2))
 # Expand the dataframe so we can sub in new values
@@ -148,6 +156,58 @@ for (i in 1:max(df2$case)){
   df2$x2test[df2$case==i]<-seq(df[3,]$mean-2*df[3,]$sd,df[3,]$mean+2*df[3,]$sd,length.out=200)
 }
 
+# Empirical effects
+# Only works for linear predictors
+emp_effects<-function(x,var,ncase,prec){
+  df<-reg_effects(x,...)
+  df2<-x$model[sample(row.names(x$model),ncase),]
+  df2$case<-seq(1:nrow(df2))
+  # Expand the dataframe so we can sub in new values
+  df2<-df2[rep(seq_len(nrow(df2)),each=prec),]
+  # Need to expand but manipulate value of one variable from the distribution in df
+  for (i in 1:max(df2$case)){
+    df2[df2$case==i,colnames(df2)==var]<-seq(df[row.names(df)==var,]$'2Q',
+                              df[row.names(df)==var,]$'3Q',length.out=200)
+  }
+  n<-gsub("factor\\(","",names(df2))
+  n<-gsub("\\)","",n)
+  names(df2)<-n
+  df2$yhat<-predict(x,newdata=df2,type="response")
+  return(df2)
+}
+
+test<-emp_effects(mymod,"x3test",200,200)
+
+qplot(ztest,yhat,geom='line',data=test,group=case,alpha=I(0.25))+theme_dpi()
+
+#####################
+# Use expand.grid
+#####################
+
+a<-mymod$xlevels
+df<-expand.grid(a)
+names(df)<-gsub("factor\\(","",names(df))
+names(df)<-gsub("\\)","",names(df))
+df$case<-seq(1:nrow(df))
+df<-df[rep(seq_len(nrow(df)),each=200),]
+
+b<-mymod$data[sapply(mymod$data,is.numeric)]
+
+
+
+b<-b[sample(1:nrow(b),nrow(df),replace=TRUE),]
+df<-cbind(b,df)
+
+
+df$yhat<-predict(mymod,newdata=df,type="response")
+
+qplot(yhat,data=df,geom='density')+facet_wrap(~x4test)
+qplot(xtest,yhat,data=df,group=x3test,geom='line')
+
+plotdf<-expand.grid()
+
+
+
 
 
 n<-gsub("factor\\(","",names(df2))
@@ -155,11 +215,21 @@ n<-gsub("\\)","",n)
 names(df2)<-n
 
 df2$yhat<-predict(mymod,newdata=df2,type="response")
-
-
 #qplot(xtest,yhat,data=df2,geom='line')+facet_wrap(~case)+theme_dpi()
 qplot(ztest,yhat,data=df2,geom='line',group=case,alpha=I(0.5))+theme_dpi()
-qplot(x2test,yhat,data=df2,geom='line',group=case,alpha=I(0.5))+theme_dpi()
+qplot(xtest,yhat,data=df2,geom='line',group=case,alpha=I(0.5))+theme_dpi()+
+  geom_smooth(aes(group=1))
+
+
+varDFTemp <- adply(modelFactorVars, 1, function(x, modelD) { expand.grid(x, extractLevels(x, modelD), stringsAsFactors=FALSE) }, modelModel)  ## Build a frame of the variables and the coefficient names for the factor variables
+names(varDFTemp)[2:3] <- c("Var", "Pivot")		## give good names to the frame
+
+
+
+
+
+
+
 
 
 #

@@ -1,9 +1,9 @@
 
 reg_effects<-function(x,...){
   a<-extract_ci(x,parm=gen_names(x,...))
-  b<-t(ddply(mymod$data,.(),numcolwise(my_summary),na.rm=TRUE))
+  b<-t(ddply(x$data,.(),numcolwise(my_summary),na.rm=TRUE))
   b<-as.data.frame(b,stringsAsFactors=FALSE)
-  names(b)<-c("mean","sd","min","2Q","median","3Q","max")
+  names(b)<-c("mean","sd","min","1Q","median","3Q","max")
   b<-b[2:nrow(b),]
   b[,1:ncol(b)]<-sapply(b[,1:ncol(b)],as.numeric)
   c<-cbind(a,b[match(rownames(a),rownames(b)),])
@@ -20,7 +20,7 @@ reg_effects<-function(x,...){
   c$min[v]<-c$min[row.names(c) %in% n]
   c$max[v]<-c$max[row.names(c) %in% n]
   c$median[v]<-c$median[row.names(c) %in% n]
-  c$'2Q'[v]<-c$'2Q'[row.names(c) %in% n]
+  c$'1Q'[v]<-c$'1Q'[row.names(c) %in% n]
   c$'3Q'[v]<-c$'3Q'[row.names(c) %in% n]
   # For dummies we just need a 1, excepf for the SD
   c$sd[is.na(c$sd)]<-0
@@ -28,5 +28,7 @@ reg_effects<-function(x,...){
   # Get rid of intercept
   df<-c[2:nrow(c),]
   df<-df[order(abs(df$lower)),]
+  df$sig<-0
+  df$sig[sign(df$lower)==sign(df$upper)]<-1
   return(df)
 }

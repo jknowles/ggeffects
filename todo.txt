@@ -1,0 +1,10 @@
+# TODO:
+
+Consult more sources below
+http://diffuseprior.wordpress.com/2012/06/15/standard-robust-and-clustered-standard-errors-computed-in-r/
+
+http://landroni.wordpress.com/2012/06/02/fama-macbeth-and-cluster-robust-by-firm-and-time-standard-errors-in-r/
+
+http://diffuseprior.wordpress.com/2012/04/23/probitlogit-marginal-effects-in-r-2/
+
+http://nsaunders.wordpress.com/2012/08/27/custom-css-for-html-generated-using-rstudio/
